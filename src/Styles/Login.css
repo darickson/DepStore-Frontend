@@ -1,0 +1,37 @@
+/* ===== LOGIN DEP URBAN ===== */
+.login-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d3436 100%);
+  margin: 0;
+  padding: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.login-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+  width: 90%;
+  max-width: 450px;
+  padding: 40px 30px;
+  margin: 20px;
+  border: none;
+}
+
+.login-card h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #2c3e50;
+}
+
+/* ... (resto del CSS que te pasé antes) */
