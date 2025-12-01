@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import predefinedUsers from './data/predefinedUsers';
+import UsuarioService from './services/UsuarioService';
+import Navbar from './components/organisms/Navbar';
+import Footer from './components/organisms/Footer';
 
 const Noticias = () => (
   <div className="container my-5">
@@ -17,10 +20,10 @@ const Noticias = () => (
 const SafeHome = React.lazy(() => import('./pages/user/Home'));
 const SafeProducts = React.lazy(() => import('./pages/user/Products'));
 const SafeProductDetail = React.lazy(() => import('./pages/user/ProductDetail'));
+const SafeMiCuenta = React.lazy(() => import('./pages/user/MiCuenta'));
 const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'));
 const AdminProducts = React.lazy(() => import('./pages/admin/ProductsAdmin'));
 
-// Componente para proteger rutas de admin
 const AdminRoute = ({ children }) => {
   const { user, isAdmin, loading } = useAuth();
 
@@ -36,11 +39,18 @@ const AdminRoute = ({ children }) => {
 };
 
 function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { user } = useAuth();
   const [carrito, setCarrito] = useState([]);
 
   const agregarAlCarrito = (producto) => {
-    const { user } = useAuth();
-    
     if (!user) {
       alert('⚠️ Debes iniciar sesión para agregar productos al carrito');
       window.location.href = '/login-safe';
@@ -48,14 +58,14 @@ function App() {
     }
 
     console.log("🛒 Agregando al carrito:", producto.name);
-    
+
     setCarrito(carritoActual => {
       const productoExistente = carritoActual.find(item => 
         item.id === producto.id && 
         item.tallaSeleccionada === producto.tallaSeleccionada &&
         item.colorSeleccionado === producto.colorSeleccionado
       );
-      
+
       if (productoExistente) {
         return carritoActual.map(item =>
           item.id === producto.id && 
@@ -68,162 +78,90 @@ function App() {
         return [...carritoActual, { ...producto, cantidad: 1 }];
       }
     });
-    
+
     alert(`✅ ${producto.name}${producto.tallaSeleccionada && producto.tallaSeleccionada !== 'Única' ? ` (Talla: ${producto.tallaSeleccionada})` : ''}${producto.colorSeleccionado && producto.colorSeleccionado !== 'Único' ? ` (Color: ${producto.colorSeleccionado})` : ''} agregado al carrito!`);
   };
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="App">
-          <Navbar carrito={carrito} />
+    <BrowserRouter>
+      <div className="App">
+        <Navbar carrito={carrito} />
+        
+        <main className="main-content">
+          <React.Suspense fallback={<div className="text-center py-5">Cargando...</div>}>
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <SafeHome 
+                    carrito={carrito}
+                    setCarrito={setCarrito}
+                    agregarAlCarrito={agregarAlCarrito}
+                  />
+                } 
+              />
+              
+              <Route 
+                path="/products" 
+                element={
+                  <SafeProducts 
+                    carrito={carrito}
+                    setCarrito={setCarrito}
+                    agregarAlCarrito={agregarAlCarrito}
+                  />
+                } 
+              />
           
-          <main className="main-content">
-            <React.Suspense fallback={<div className="text-center py-5">Cargando...</div>}>
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={
-                    <SafeHome 
-                      carrito={carrito}
-                      setCarrito={setCarrito}
-                      agregarAlCarrito={agregarAlCarrito}
-                    />
-                  } 
-                />
-                
-                <Route 
-                  path="/products" 
-                  element={
-                    <SafeProducts 
-                      carrito={carrito}
-                      setCarrito={setCarrito}
-                      agregarAlCarrito={agregarAlCarrito}
-                    />
-                  } 
-                />
-            
-                <Route 
-                  path="/producto/:id" 
-                  element={
-                    <SafeProductDetail 
-                      agregarAlCarrito={agregarAlCarrito}
-                    />
-                  } 
-                />
-                
-                {/* RUTAS DE ADMIN */}
-                <Route 
-                  path="/admin/dashboard" 
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin/products"
-                  element={
-                    <AdminRoute>
-                      <AdminProducts />
-                    </AdminRoute>
-                  }
-                />
-                
-                <Route path="/login-safe" element={<LoginSafe />} />
-                
-                <Route 
-                  path="/carrito" 
-                  element={
-                    <ProtectedRoute>
-                      <CarritoSafe carrito={carrito} setCarrito={setCarrito} />
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                <Route path="/login" element={<LoginSafe />} />
-                <Route path="/noticias" element={<Noticias />} />
-              </Routes>
-            </React.Suspense>
-          </main>
+              <Route 
+                path="/producto/:id" 
+                element={
+                  <SafeProductDetail 
+                    agregarAlCarrito={agregarAlCarrito}
+                  />
+                } 
+              />
+              
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/products"
+                element={
+                  <AdminRoute>
+                    <AdminProducts />
+                  </AdminRoute>
+                }
+              />
+              
+              <Route path="/login-safe" element={<LoginSafe />} />
 
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
-  );
-}
+              <Route 
+                path="/carrito" 
+                element={
+                  <ProtectedRoute>
+                    <CarritoSafe carrito={carrito} setCarrito={setCarrito} />
+                  </ProtectedRoute>
+                } 
+              />
 
-// Componente Navbar actualizado
-function Navbar({ carrito }) {
-  const { user, logout, isAdmin } = useAuth();
+              <Route path="/login" element={<LoginSafe />} />
+              <Route path="/noticias" element={<Noticias />} />
+              <Route path="/mi-cuenta" element={<ProtectedRoute><SafeMiCuenta /></ProtectedRoute>} />
+            </Routes>
+          </React.Suspense>
+        </main>
 
-  const handleLogout = () => {
-    logout();
-    alert('👋 ¡Sesión cerrada!');
-  };
-
-  return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-3">
-      <div className="container">
-        <Link className="navbar-brand mb-0 h1 fw-bold" to="/">
-          🛍️ DEP URBAN
-        </Link>
-        <div className="navbar-nav ms-auto d-flex align-items-center">
-          <Link className="nav-link me-3" to="/">Inicio</Link>
-          <Link className="nav-link me-3" to="/products">Productos</Link>
-          
-          {user && (
-            <Link className="nav-link me-3" to="/carrito">
-              🛒 Carrito ({carrito.length})
-            </Link>
-          )}
-          
-          {/* Enlace al Dashboard de Admin */}
-          {isAdmin && (
-            <Link className="nav-link me-3 text-warning" to="/admin/dashboard">
-              👑 Admin
-            </Link>
-          )}
-          
-          {user ? (
-            <div className="d-flex align-items-center">
-              <span className="text-light me-3">
-                👋 Hola, {user.nombre}
-                {isAdmin && <span className="badge bg-warning ms-1">ADMIN</span>}
-              </span>
-              <button 
-                className="btn btn-outline-light btn-sm"
-                onClick={handleLogout}
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-          ) : (
-            <Link className="nav-link" to="/login-safe">
-              🔐 Login
-            </Link>
-          )}
-        </div>
+        <Footer />
       </div>
-    </nav>
+    </BrowserRouter>
   );
 }
 
-// Componente Footer
-function Footer() {
-  return (
-    <footer className="bg-dark text-white py-4 mt-auto">
-      <div className="container text-center">
-        <h5>DEP URBAN 🛍️</h5>
-        <p>Estilo urbano, actitud callejera</p>
-        <p className="mb-0">© 2024 DEP URBAN - Todos los derechos reservados</p>
-      </div>
-    </footer>
-  );
-}
-
-// Componente para rutas protegidas (solo usuarios logueados)
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
@@ -238,11 +176,10 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// LoginSafe actualizado con el contexto de auth
 function LoginSafe() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isLogin, setIsLogin] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
+  const [formData, setFormData] = React.useState({
     nombre: '',
     email: '',
     password: '',
@@ -263,7 +200,6 @@ function LoginSafe() {
     setLoading(true);
 
     try {
-      // Usuarios predefinidos con roles (importados de data/predefinedUsers)
       const usuariosPredefinidos = predefinedUsers;
 
       const emailValido = 
@@ -277,53 +213,74 @@ function LoginSafe() {
         return;
       }
 
-      setTimeout(() => {
-        let userData;
-        
-        // Verificar usuarios predefinidos
-        const usuarioPredefinido = usuariosPredefinidos.find(
-          u => u.email === formData.email && u.password === formData.password
-        );
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (usuarioPredefinido) {
+      let userData;
+      
+      const usuarioPredefinido = usuariosPredefinidos.find(
+        u => u.email === formData.email && u.password === formData.password
+      );
+
+      if (usuarioPredefinido) {
+        userData = {
+          id: Date.now(),
+          nombre: usuarioPredefinido.nombre,
+          email: usuarioPredefinido.email,
+          rol: usuarioPredefinido.rol,
+          tipo: 'pre-definido',
+          fechaRegistro: new Date().toISOString()
+        };
+      } else if (isLogin) {
+        const users = JSON.parse(localStorage.getItem('depUsers') || '[]');
+        const userFound = users.find(u => u.email === formData.email && u.password === formData.password);
+        
+        if (!userFound) {
+          alert('❌ Email o contraseña incorrectos');
+          setLoading(false);
+          return;
+        }
+        
+        userData = {
+          id: userFound.id,
+          nombre: userFound.nombre,
+          email: userFound.email,
+          telefono: userFound.telefono,
+          rol: 'user',
+          tipo: 'registrado',
+          fechaRegistro: userFound.fechaRegistro
+        };
+      } else {
+        const users = JSON.parse(localStorage.getItem('depUsers') || '[]');
+        const userExists = users.find(u => u.email === formData.email);
+        if (userExists) {
+          alert('❌ El email ya está registrado (local)');
+          setLoading(false);
+          return;
+        }
+
+        const newUserPayload = {
+          nombre: formData.nombre,
+          email: formData.email,
+          password: formData.password,
+          telefono: formData.telefono || ''
+        };
+
+        try {
+          const resp = await UsuarioService.createUsuario(newUserPayload);
+          const created = resp?.data || resp?.data?.data || resp;
+          const createdId = created?.id || created?._id || Date.now();
+
           userData = {
-            id: Date.now(),
-            nombre: usuarioPredefinido.nombre,
-            email: usuarioPredefinido.email,
-            rol: usuarioPredefinido.rol,
-            tipo: 'pre-definido',
-            fechaRegistro: new Date().toISOString()
+            id: createdId,
+            nombre: created?.nombre || newUserPayload.nombre,
+            email: created?.email || newUserPayload.email,
+            telefono: created?.telefono || newUserPayload.telefono || '',
+            rol: created?.rol || 'user',
+            tipo: 'nuevo',
+            fechaRegistro: created?.fechaRegistro || new Date().toISOString()
           };
-        } else if (isLogin) {
-          // Verificar usuarios registrados
-          const users = JSON.parse(localStorage.getItem('depUsers') || '[]');
-          const userFound = users.find(u => u.email === formData.email && u.password === formData.password);
-          
-          if (!userFound) {
-            alert('❌ Email o contraseña incorrectos');
-            setLoading(false);
-            return;
-          }
-          
-          userData = {
-            id: userFound.id,
-            nombre: userFound.nombre,
-            email: userFound.email,
-            telefono: userFound.telefono,
-            rol: 'user', // Por defecto user para usuarios registrados
-            tipo: 'registrado',
-            fechaRegistro: userFound.fechaRegistro
-          };
-        } else {
-          // Registrar nuevo usuario
-          const users = JSON.parse(localStorage.getItem('depUsers') || '[]');
-          
-          const userExists = users.find(u => u.email === formData.email);
-          if (userExists) {
-            alert('❌ El email ya está registrado');
-            setLoading(false);
-            return;
-          }
+        } catch (err) {
+          console.warn('Fallo crear usuario en backend, guardando localmente', err?.message || err);
 
           const newUser = {
             id: Date.now(),
@@ -333,34 +290,32 @@ function LoginSafe() {
             telefono: formData.telefono,
             fechaRegistro: new Date().toISOString()
           };
-          
+
           users.push(newUser);
           localStorage.setItem('depUsers', JSON.stringify(users));
-          
+
           userData = {
             id: newUser.id,
             nombre: newUser.nombre,
             email: newUser.email,
             telefono: newUser.telefono,
-            rol: 'user', // Nuevos usuarios son user por defecto
+            rol: 'user',
             tipo: 'nuevo',
             fechaRegistro: newUser.fechaRegistro
           };
         }
-        
-        // Login con el contexto
-        login(userData);
-        alert(`✅ ¡Bienvenido a DEP URBAN, ${userData.nombre}!`);
-        
-        // Redirigir según el rol
-        if (userData.rol === 'admin') {
-          window.location.href = '/admin/dashboard';
-        } else {
-          window.location.href = '/';
-        }
-        
-        setLoading(false);
-      }, 1000);
+      }
+      
+      login(userData);
+      alert(`✅ ¡Bienvenido a DEP URBAN, ${userData.nombre}!`);
+      
+      if (userData.rol === 'admin') {
+        window.location.href = '/admin/dashboard';
+      } else {
+        window.location.href = '/';
+      }
+      
+      setLoading(false);
 
     } catch (error) {
       alert(`❌ Error: ${error}`);

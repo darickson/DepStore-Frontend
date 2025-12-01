@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Container, Row, Col, Badge, Button, Alert, Spinner } from "react-bootstrap";
 import ProductoService from "../../services/ProductoService";
+import { useAuth } from "../../contexts/AuthContext";
 import Text from "../../components/atoms/Text";
 import Image from "../../components/atoms/Image";
 
-const ProductDetail = ({ agregarAlCarrito, user }) => {
+const ProductDetail = ({ agregarAlCarrito }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

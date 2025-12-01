@@ -24,6 +24,10 @@ export function AuthProvider({ children }) {
       localStorage.setItem('depCurrentUser', JSON.stringify(userData));
       // Duplicate small compatibility keys used across the app
       if (userData.nombre) localStorage.setItem('userNombre', userData.nombre);
+      if (userData.email) localStorage.setItem('userEmail', userData.email);
+      if (userData.telefono) localStorage.setItem('userPhone', userData.telefono || userData.phone || '');
+      if (userData.address) localStorage.setItem('userAddress', userData.address || '');
+      if (userData.id) localStorage.setItem('userId', userData.id);
       if (userData.rol) localStorage.setItem('userRol', userData.rol);
       localStorage.setItem('isLoggedIn', 'true');
     } catch (err) {
@@ -36,6 +40,10 @@ export function AuthProvider({ children }) {
     try {
       localStorage.removeItem('depCurrentUser');
       localStorage.removeItem('userNombre');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userPhone');
+      localStorage.removeItem('userAddress');
+      localStorage.removeItem('userId');
       localStorage.removeItem('userRol');
       localStorage.removeItem('isLoggedIn');
     } catch (err) {

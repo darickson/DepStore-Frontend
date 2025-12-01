@@ -1,0 +1,106 @@
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.material-icons.md-18 { font-size: 18px; }
+.material-icons.md-24 { font-size: 24px; }
+.material-icons.md-36 { font-size: 36px; }
+.material-icons.md-48 { font-size: 48px; }
+
+.navbar {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  padding: 0.5rem 0;
+}
+
+.navbar .btn-danger {
+  transition: all 0.3s ease;
+}
+
+.navbar .btn-danger:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.navbar .btn-outline-danger:hover {
+  transform: scale(1.05);
+}
+
+.menu-category {
+  padding: 0.5rem 0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.menu-category:hover {
+  background-color: #f0f0f0;
+}
+
+.menu-category a {
+  transition: color 0.2s ease;
+}
+
+.menu-category a:hover {
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
+.submenu {
+  background-color: #f9f9f9;
+  border-left: 3px solid #dc3545;
+  padding-left: 1rem;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.submenu a {
+  font-size: 0.95rem;
+}
+
+.offcanvas {
+  background-color: #f8f9fa;
+}
+
+.offcanvas-header {
+  border-bottom: 2px solid #dc3545;
+}
+
+.iconos-derecha {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.25rem 0;
+  }
+  
+  .navbar .btn {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .material-icons {
+    font-size: 20px;
+  }
+}
